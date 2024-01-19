@@ -1,0 +1,11 @@
+---
+poll:
+  server: http://checkip.amazonaws.com/
+  cron: "0 0 0 * * *"
+
+cloudflare:
+  domain: YOUR_DOMAIN
+  api:
+    url: https://api.cloudflare.com/client/v4
+    key: YOUR_CF_API_KEY
+    email: YOUR_CF_EMAIL
