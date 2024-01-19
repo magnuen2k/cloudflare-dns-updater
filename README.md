@@ -20,12 +20,12 @@ Before running the application, make sure you have the following:
 - Run container from image (default latest tag)
     ```shell
     docker run \
-      -n my-dns-updater \
+      --name my-dns-updater \
       -e "poll.cron"="0 0 0 * * *" \
       -e "cloudflare.domain"="YOUR_CLOUDFLARE_DOMAIN" \
       -e "cloudflare.api.key"="YOUR_CLOUDFLARE_API_KEY" \
       -e "cloudflare.api.email"="YOUR_CLOUDFLARE_EMAIL" \
-      artifactory.magnuen2k.com/homelab/util/dns-updater:latest
+      artifactory.magnuen2k.com/homelab/dns-updater:latest
     ```
 
 
