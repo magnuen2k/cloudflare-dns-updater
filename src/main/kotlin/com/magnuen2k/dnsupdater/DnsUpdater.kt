@@ -34,32 +34,31 @@ class DnsUpdater(
             val ip = pollAddress().trim()
             if (cache.isNotEmpty() && cache.contains(ip)) return
             if (cache.count() > 10) cache.clear()
-            cache.apply {
-                add(ip)
-            }
+            cache.apply { add(ip) }
 
-            val zones = webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)?.result
-            zones?.forEach { zone ->
-                webRequest<RecordResponse>(
-                    url = "$apiUrl/zones/${zone.id}/dns_records",
-                    method = HttpMethod.GET
-                )
-                    ?.result
-                    ?.forEach { record ->
-                        if (record.type == "A") {
-                            webRequest<Any>(
-                                url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
-                                method = HttpMethod.PUT,
-                                body = mapOf(
-                                    "content" to ip,
-                                    "type" to "A",
-                                    "name" to record.name,
-                                    "proxied" to record.proxied,
+            webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)
+                ?.result
+                ?.forEach { zone ->
+                    webRequest<RecordResponse>(
+                        url = "$apiUrl/zones/${zone.id}/dns_records",
+                        method = HttpMethod.GET
+                    )
+                        ?.result
+                        ?.forEach { record ->
+                            if (record.type == "A") {
+                                webRequest<Any>(
+                                    url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
+                                    method = HttpMethod.PUT,
+                                    body = mapOf(
+                                        "content" to ip,
+                                        "type" to "A",
+                                        "name" to record.name,
+                                        "proxied" to record.proxied,
+                                    )
                                 )
-                            )
+                            }
                         }
-                    }
-            }
+                }
         } catch (e: Exception) {
             println(e.message)
         }
@@ -83,6 +82,7 @@ class DnsUpdater(
     }
 
     fun pollAddress(): String {
+        println("polling ip...")
         return restTemplate.getForObject(pollServer, String::class.java) ?: ""
     }
 }

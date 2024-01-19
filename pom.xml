@@ -69,6 +69,23 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <!-- Need to create self-executable uber/fat jars -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <finalName>dns-updater</finalName>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
