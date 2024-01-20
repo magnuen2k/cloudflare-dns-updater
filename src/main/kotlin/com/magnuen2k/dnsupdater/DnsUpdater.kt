@@ -2,6 +2,8 @@ package com.magnuen2k.dnsupdater
 
 import com.magnuen2k.dnsupdater.dto.RecordResponse
 import com.magnuen2k.dnsupdater.dto.ZoneResponse
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -11,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.net.URI
+import kotlin.time.measureTime
 
 @Service
 class DnsUpdater(
@@ -26,46 +29,59 @@ class DnsUpdater(
     private val pollServer: String,
     private val restTemplate: RestTemplate,
 ) {
+
+    val logger: Logger = LoggerFactory.getLogger(DnsUpdater::class.java)
     val cache = mutableListOf("")
 
     @Scheduled(cron = "\${poll.cron}")
     fun run() {
-        try {
-            val ip = pollAddress().trim()
-            if (cache.isNotEmpty() && cache.contains(ip)) return
-            if (cache.count() > 10) cache.clear()
-            cache.apply { add(ip) }
-
-            webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)
-                ?.result
-                ?.forEach { zone ->
-                    webRequest<RecordResponse>(
-                        url = "$apiUrl/zones/${zone.id}/dns_records",
-                        method = HttpMethod.GET
-                    )
-                        ?.result
-                        ?.forEach { record ->
-                            if (record.type == "A") {
-                                webRequest<Any>(
-                                    url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
-                                    method = HttpMethod.PUT,
-                                    body = mapOf(
-                                        "content" to ip,
-                                        "type" to "A",
-                                        "name" to record.name,
-                                        "proxied" to record.proxied,
-                                    )
-                                )
-                            }
-                        }
+        measureTime {
+            try {
+                val ip = pollAddress().trim()
+                if (cache.isNotEmpty() && cache.contains(ip)) {
+                    logger.info("Ip has not changed. No updating required.")
+                    return
                 }
-        } catch (e: Exception) {
-            println(e.message)
+
+                if (cache.count() > 2) cache.clear()
+                cache.apply { add(ip) }
+
+                updateDns(ip)
+            } catch (e: Exception) {
+                logger.error("Update failed with error message: ${e.message}")
+            }
         }
     }
 
+    fun updateDns(ip: String) {
+        logger.info("Updating all DNS records (A-Records)")
+        webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)
+            ?.result
+            ?.forEach { zone ->
+                webRequest<RecordResponse>(
+                    url = "$apiUrl/zones/${zone.id}/dns_records",
+                    method = HttpMethod.GET
+                )
+                    ?.result
+                    ?.forEach { record ->
+                        if (record.type == "A") {
+                            logger.info("Updating record: ${record.name} with ip: $ip")
+                            webRequest<Any>(
+                                url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
+                                method = HttpMethod.PUT,
+                                body = mapOf(
+                                    "content" to ip,
+                                    "type" to "A",
+                                    "name" to record.name,
+                                    "proxied" to record.proxied,
+                                )
+                            )
+                        }
+                    }
+            }
+    }
+
     private inline fun <reified T> webRequest(url: String, method: HttpMethod, body: Map<String, Any>? = null): T? {
-        println("Calling $url with $method")
         val headers = HttpHeaders().apply {
             set("X-Auth-Email", email)
             set("Authorization", "Bearer $apiKey")
@@ -81,8 +97,6 @@ class DnsUpdater(
         return responseEntity.body ?: null
     }
 
-    fun pollAddress(): String {
-        println("polling ip...")
-        return restTemplate.getForObject(pollServer, String::class.java) ?: ""
-    }
+    fun pollAddress(): String =
+        restTemplate.getForObject(pollServer, String::class.java) ?: ""
 }
