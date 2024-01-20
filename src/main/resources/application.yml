@@ -1,4 +1,8 @@
 ---
+spring:
+  main:
+    web-application-type: none
+
 poll:
   server: http://checkip.amazonaws.com/
   cron: "0 0 0 * * *"
