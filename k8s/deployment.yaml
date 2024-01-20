@@ -11,10 +11,14 @@ spec:
   selector:
     matchLabels:
       app: dns-updater
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: dns-updater
+      annotations:
+        deploy-date: "deploy-date-value"
     spec:
       nodeSelector:
         worker: "true"
