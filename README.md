@@ -11,14 +11,21 @@ Before running the application, make sure you have the following:
 - Cloudflare API key
 - Cloudflare account email
 
-## Run with Docker
+## Run containerized
+
+### Kubernetes
+
+Kubernetes manifests are located under `/k8s`.
+
+### Docker
 
 - Login to registry with your account
     ```shell
     docker login artifactory.magnuen2k.com
     ```
 
-- Run container from image (default latest tag)
+- Run from command line or with `docker-compose.yml`
+1. Command line
     ```shell
     docker run \
       --name my-dns-updater \
@@ -28,6 +35,21 @@ Before running the application, make sure you have the following:
       -e "cloudflare.api.email"="YOUR_CLOUDFLARE_EMAIL" \
       artifactory.magnuen2k.com/homelab/dns-updater:latest
     ```
+2. Docker compose
+     ```yaml
+         version: "2.2"
+         services:
+           dnsupdater:
+             image: artifactory.magnuen2k.com/homelab/dns-updater:latest
+             container_name: my-dns-updater
+             ports:
+               - "8080:8080"
+             environment:
+               - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
+               - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
+               - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
+               - poll.cron="0 */1 * * * *"
+     ```
 
 
 ## Run locally
