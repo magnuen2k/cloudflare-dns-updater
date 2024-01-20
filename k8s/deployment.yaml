@@ -18,7 +18,7 @@ spec:
       labels:
         app: dns-updater
       annotations:
-        deploy-date: "deploy-date-value"
+        version: "version-placeholder"
     spec:
       nodeSelector:
         worker: "true"
