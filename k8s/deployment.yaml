@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dns-updater
+  name: dns-updater
+  namespace: homelab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-updater
+  template:
+    metadata:
+      labels:
+        app: dns-updater
+    spec:
+      nodeSelector:
+        worker: "true"
+      containers:
+        - env:
+            - name: "poll.cron"
+              value: "0 */1 * * * *"
+            - name: "cloudflare.domain"
+              value: "magnuen2k.com"
+            - name: "cloudflare.api.email"
+              value: "magnuen2k@gmail.com"
+            - name: "cloudflare.api.key"
+              valueFrom:
+                secretKeyRef:
+                  name: cf-secret
+                  key: key
+          image: artifactory.magnuen2k.com/homelab/dns-updater:latest
+          name: dns-updater
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "1Gi"
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dns-updater
+  name: dns-updater
+  namespace: homelab
+spec:
+  ports:
+    - name: dns-updater
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: dns-updater
+  type: LoadBalancer
