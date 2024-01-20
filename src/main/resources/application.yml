@@ -1,8 +1,4 @@
 ---
-spring:
-  main:
-    web-application-type: none
-
 poll:
   server: https://api.ipify.org/
   cron: "0 */1 * * * *"
@@ -13,3 +9,9 @@ cloudflare:
     url: https://api.cloudflare.com/client/v4
     key: YOUR_CF_API_KEY
     email: YOUR_CF_EMAIL
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
