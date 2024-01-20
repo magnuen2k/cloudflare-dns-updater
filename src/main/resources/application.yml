@@ -4,8 +4,8 @@ spring:
     web-application-type: none
 
 poll:
-  server: http://checkip.amazonaws.com/
-  cron: "0 0 0 * * *"
+  server: https://api.ipify.org/
+  cron: "0 */1 * * * *"
 
 cloudflare:
   domain: YOUR_DOMAIN
