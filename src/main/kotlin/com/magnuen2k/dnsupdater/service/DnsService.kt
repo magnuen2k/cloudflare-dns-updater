@@ -1,7 +1,8 @@
-package com.magnuen2k.dnsupdater
+package com.magnuen2k.dnsupdater.service
 
 import com.magnuen2k.dnsupdater.dto.RecordResponse
 import com.magnuen2k.dnsupdater.dto.ZoneResponse
+import com.magnuen2k.dnsupdater.util.measureTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -13,29 +14,28 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.net.URI
-import kotlin.time.measureTime
 
 @Service
-class DnsUpdater(
-    @Value("\${cloudflare.domain}")
-    private val domain: String,
-    @Value("\${cloudflare.api.url}")
-    private val apiUrl: String,
-    @Value("\${cloudflare.api.key}")
-    private val apiKey: String,
-    @Value("\${cloudflare.api.email}")
-    private val email: String,
-    @Value("\${poll.server}")
-    private val pollServer: String,
-    private val restTemplate: RestTemplate,
+class DnsService(
+        @Value("\${cloudflare.domain}")
+        private val domain: String,
+        @Value("\${cloudflare.api.url}")
+        private val apiUrl: String,
+        @Value("\${cloudflare.api.key}")
+        private val apiKey: String,
+        @Value("\${cloudflare.api.email}")
+        private val email: String,
+        @Value("\${poll.server}")
+        private val pollServer: String,
+        private val restTemplate: RestTemplate,
 ) {
 
-    val logger: Logger = LoggerFactory.getLogger(DnsUpdater::class.java)
+    val logger: Logger = LoggerFactory.getLogger(DnsService::class.java)
     val cache = mutableListOf("")
 
     @Scheduled(cron = "\${poll.cron}")
     fun run() {
-        measureTime {
+        measureTime("Scheduled DNS update service") {
             try {
                 val ip = pollAddress().trim()
                 if (cache.isNotEmpty() && cache.contains(ip)) {
@@ -56,29 +56,29 @@ class DnsUpdater(
     fun updateDns(ip: String) {
         logger.info("Updating all DNS records (A-Records)")
         webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)
-            ?.result
-            ?.forEach { zone ->
-                webRequest<RecordResponse>(
-                    url = "$apiUrl/zones/${zone.id}/dns_records",
-                    method = HttpMethod.GET
-                )
-                    ?.result
-                    ?.forEach { record ->
-                        if (record.type == "A") {
-                            logger.info("Updating record: ${record.name} with ip: $ip")
-                            webRequest<Any>(
-                                url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
-                                method = HttpMethod.PUT,
-                                body = mapOf(
-                                    "content" to ip,
-                                    "type" to "A",
-                                    "name" to record.name,
-                                    "proxied" to record.proxied,
-                                )
-                            )
-                        }
-                    }
-            }
+                ?.result
+                ?.forEach { zone ->
+                    webRequest<RecordResponse>(
+                            url = "$apiUrl/zones/${zone.id}/dns_records",
+                            method = HttpMethod.GET
+                    )
+                            ?.result
+                            ?.forEach { record ->
+                                if (record.type == "A") {
+                                    logger.info("Updating record: ${record.name} with ip: $ip")
+                                    webRequest<Any>(
+                                            url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
+                                            method = HttpMethod.PUT,
+                                            body = mapOf(
+                                                    "content" to ip,
+                                                    "type" to "A",
+                                                    "name" to record.name,
+                                                    "proxied" to record.proxied,
+                                            )
+                                    )
+                                }
+                            }
+                }
     }
 
     private inline fun <reified T> webRequest(url: String, method: HttpMethod, body: Map<String, Any>? = null): T? {
@@ -98,5 +98,5 @@ class DnsUpdater(
     }
 
     fun pollAddress(): String =
-        restTemplate.getForObject(pollServer, String::class.java) ?: ""
+            restTemplate.getForObject(pollServer, String::class.java) ?: ""
 }
