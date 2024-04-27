@@ -25,6 +25,8 @@ class DnsService(
         private val apiKey: String,
         @Value("\${cloudflare.api.email}")
         private val email: String,
+        @Value("\${cloudflare.records}")
+        private val records: List<String>?,
         @Value("\${poll.server}")
         private val pollServer: String,
         private val restTemplate: RestTemplate,
@@ -63,20 +65,23 @@ class DnsService(
                             method = HttpMethod.GET
                     )
                             ?.result
+                            ?.filter {
+                                if (records?.isNotEmpty() == true) {
+                                    records.contains(it.name) && it.type == "A"
+                                } else it.type == "A"
+                            }
                             ?.forEach { record ->
-                                if (record.type == "A") {
-                                    logger.info("Updating record: ${record.name} with ip: $ip")
-                                    webRequest<Any>(
-                                            url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
-                                            method = HttpMethod.PUT,
-                                            body = mapOf(
-                                                    "content" to ip,
-                                                    "type" to "A",
-                                                    "name" to record.name,
-                                                    "proxied" to record.proxied,
-                                            )
-                                    )
-                                }
+                                logger.info("Updating record: ${record.name} with ip: $ip")
+                                webRequest<Any>(
+                                        url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
+                                        method = HttpMethod.PUT,
+                                        body = mapOf(
+                                                "content" to ip,
+                                                "type" to "A",
+                                                "name" to record.name,
+                                                "proxied" to record.proxied,
+                                        )
+                                )
                             }
                 }
     }
@@ -94,7 +99,7 @@ class DnsService(
         }
 
         val responseEntity = restTemplate.exchange(requestEntity, T::class.java)
-        return responseEntity.body ?: null
+        return responseEntity.body
     }
 
     fun pollAddress(): String =

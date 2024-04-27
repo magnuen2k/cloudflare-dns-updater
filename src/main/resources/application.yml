@@ -9,6 +9,8 @@ cloudflare:
     url: https://api.cloudflare.com/client/v4
     key: YOUR_CF_API_KEY
     email: YOUR_CF_EMAIL
+  records: >
+  #  some.record.com
 
 management:
   endpoints:
