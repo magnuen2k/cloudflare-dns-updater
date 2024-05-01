@@ -1,0 +1,22 @@
+nameOverride: "cloudflare-dns-updater"
+fullnameOverride: "cloudflare-dns-updater"
+
+image:
+  repository: registry.magnuen2k.com/homelab/util/dns-updater
+  tag: "latest"
+
+ingress:
+  enabled: false
+
+env:
+  - name: "poll.cron"
+    value: "0 */1 * * * *"
+  - name: "cloudflare.domain"
+    value: "magnuen2k.com"
+  - name: "cloudflare.api.email"
+    value: "magnuen2k@gmail.com"
+  - name: "cloudflare.api.key"
+    valueFrom:
+      secretKeyRef:
+        name: cf-secret
+        key: key

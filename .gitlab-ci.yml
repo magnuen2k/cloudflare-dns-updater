@@ -1,4 +1,4 @@
 ---
 include:
   - project: 'homelab/ops/pipelines'
-    file: 'maven.yml'
+    file: 'helm-maven.yml'
