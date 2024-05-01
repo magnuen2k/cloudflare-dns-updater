@@ -11,20 +11,27 @@ Before running the application, make sure you have the following:
 - Cloudflare API key
 - Cloudflare account email
 
+Optional:
+
+- Specific A records to update
+
 ## Run containerized
 
-### Kubernetes
+### Kubernetes with helm
 
-Kubernetes manifests are located under `/k8s`.
+Helm overrides are located under `/k8s`.
+
+All magnuen2k charts can be found [here](https://gitlab.magnuen2k.com/homelab/charts)
 
 ### Docker
 
 - Login to registry with your account
     ```shell
-    docker login artifactory.magnuen2k.com
+    docker login registry.magnuen2k.com
     ```
 
 - Run from command line or with `docker-compose.yml`
+
 1. Command line
     ```shell
     docker run \
@@ -33,24 +40,24 @@ Kubernetes manifests are located under `/k8s`.
       -e "cloudflare.domain"="YOUR_CLOUDFLARE_DOMAIN" \
       -e "cloudflare.api.key"="YOUR_CLOUDFLARE_API_KEY" \
       -e "cloudflare.api.email"="YOUR_CLOUDFLARE_EMAIL" \
-      artifactory.magnuen2k.com/homelab/dns-updater:latest
+      registry.magnuen2k.com/homelab/util/dns-updater:latest
     ```
 2. Docker compose
      ```yaml
-         version: "2.2"
-         services:
-           dnsupdater:
-             image: artifactory.magnuen2k.com/homelab/dns-updater:latest
-             container_name: my-dns-updater
-             ports:
-               - "8080:8080"
-             environment:
-               - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
-               - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
-               - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
-               - poll.cron="0 */1 * * * *"
-     ```
-
+      version: "2.2"
+      services:
+        dnsupdater:
+          image: registry.magnuen2k.com/homelab/util/dns-updater:latest
+          container_name: my-dns-updater
+          ports:
+            - "8080:8080"
+          environment:
+            - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
+            - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
+            - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
+            - cloudflare.records=some.record.com,another.one.com # THIS IS OPTIONAL
+            - poll.cron=0 */1 * * * *
+      ```
 
 ## Run locally
 
@@ -64,16 +71,22 @@ cloudflare:
     key: YOUR_CLOUDFLARE_API_KEY
     email: YOUR_CLOUDFLARE_EMAIL
 ```
-Replace `YOUR_CLOUDFLARE_DOMAIN`, `YOUR_CLOUDFLARE_API_KEY` and `YOUR_CLOUDFLARE_EMAIL` with your actual Cloudflare API credentials.
+
+Replace `YOUR_CLOUDFLARE_DOMAIN`, `YOUR_CLOUDFLARE_API_KEY` and `YOUR_CLOUDFLARE_EMAIL` with your actual Cloudflare API
+credentials.
 
 #### Cron Expression
+
 Set the cron expression for the scheduled task in the application.yml file:
 
 ```yaml
 poll:
   cron: "0 */1 * * * *"
 ```
+
 This example schedules the task to run every minute. Adjust the cron expression as needed.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/license/mit/) file for details.
+
+This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/license/mit/) file for
+details.
