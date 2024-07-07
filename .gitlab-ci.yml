@@ -12,7 +12,5 @@ include:
 
 deploy:
   image: intility/helm-oc:latest
-  before_script:
-    - oc login --token=$OPENSHIFT_TOKEN --server=$OPENSHIFT_SERVER --insecure-skip-tls-verify
   extends:
     - .deploy
