@@ -10,8 +10,16 @@ include:
   - project: 'homelab/kustomizer'
     file: 'deploy.yml'
 
-deploy:
+copy:
   extends:
     - .copy
+
+update:
+  needs: ["copy"]
+  extends:
     - .update
+
+deploy:
+  needs: ["update"]
+  extends:
     - .deploy
