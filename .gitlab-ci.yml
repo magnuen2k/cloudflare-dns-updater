@@ -10,6 +10,11 @@ include:
   - project: 'homelab/kustomizer'
     file: 'deploy.yml'
 
+prepare_deploy:
+  image: alpine/git:latest
+  extends:
+    - .prepare
+
 deploy:
   image: intility/helm-oc:latest
   extends:
