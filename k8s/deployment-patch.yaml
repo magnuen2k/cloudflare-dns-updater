@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-updater
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+            - name: "poll.cron"
+              value: "0 */1 * * * *"
+            - name: "cloudflare.domain"
+              value: "magnuen2k.com"
+            - name: "cloudflare.api.email"
+              value: "magnuen2k@gmail.com"
+            - name: "cloudflare.api.key"
+              valueFrom:
+                secretKeyRef:
+                  name: cf-secret
+                  key: key
+          image: registry.magnuen2k.com/homelab/util/dns-updater:latest
+          name: dns-updater
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "1Gi"

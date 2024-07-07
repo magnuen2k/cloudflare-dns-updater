@@ -1,4 +1,17 @@
 ---
+#include:
+#  - project: 'homelab/ops/pipelines'
+#    file: 'openshift-helm.yml'
+
+variables:
+  OPENSHIFT_SERVER: api.lab.magnuen2k.com:6443
+
 include:
-  - project: 'homelab/ops/pipelines'
-    file: 'openshift-helm.yml'
+  - project: 'homelab/kustomizer'
+    file: 'deploy.yml'
+
+deploy:
+  extends:
+    - .copy
+    - .update
+    - .deploy
