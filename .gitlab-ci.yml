@@ -1,11 +1,4 @@
 ---
-#include:
-#  - project: 'homelab/ops/pipelines'
-#    file: 'openshift-helm.yml'
-
-variables:
-  OPENSHIFT_SERVER: api.lab.magnuen2k.com:6443
-
 include:
-  - project: 'homelab/kustomizer'
-    file: 'kustomizer.yml'
+  - project: 'homelab/ops/pipelines'
+    file: 'openshift-kustomizer.yml'
