@@ -19,7 +19,6 @@ spec:
                 secretKeyRef:
                   name: cf-secret
                   key: key
-          image: registry.magnuen2k.com/homelab/util/dns-updater:latest
           name: dns-updater
           ports:
             - containerPort: 8080
