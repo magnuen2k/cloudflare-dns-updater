@@ -8,4 +8,4 @@ variables:
 
 include:
   - project: 'homelab/kustomizer'
-    file: 'deploy.yml'
+    file: 'kustomizer.yml'
