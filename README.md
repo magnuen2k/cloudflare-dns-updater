@@ -44,19 +44,19 @@ All magnuen2k charts can be found [here](https://gitlab.magnuen2k.com/homelab/ch
     ```
 2. Docker compose
      ```yaml
-      version: "2.2"
-      services:
-        dnsupdater:
-          image: registry.magnuen2k.com/homelab/util/dns-updater:latest
-          container_name: my-dns-updater
-          ports:
-            - "8080:8080"
-          environment:
-            - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
-            - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
-            - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
-            - cloudflare.records=some.record.com,another.one.com # THIS IS OPTIONAL
-            - poll.cron=0 */1 * * * *
+    version: "2.2"
+    services:
+      dnsupdater:
+        image: registry.magnuen2k.com/homelab/util/dns-updater:latest
+        container_name: my-dns-updater
+        ports:
+          - "8080:8080"
+        environment:
+          - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
+          - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
+          - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
+          - cloudflare.records=some.record.com,another.one.com # THIS IS OPTIONAL
+          - poll.cron=0 */1 * * * *
       ```
 
 ## Run locally
