@@ -1,4 +1,4 @@
 ---
 include:
   - project: 'homelab/ops/pipelines'
-    file: 'openshift-kustomizer.yml'
+    file: 'homelab-maven.yml'

@@ -11,14 +11,10 @@ spec:
   selector:
     matchLabels:
       app: dns-updater
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: dns-updater
-      annotations:
-        version: "version-placeholder"
     spec:
       nodeSelector:
         worker: "true"
@@ -35,30 +31,11 @@ spec:
                 secretKeyRef:
                   name: cf-secret
                   key: key
-          image: artifactory.magnuen2k.com/homelab/dns-updater:latest
+          image: registry.magnuen2k.com/homelab/util/dns-updater:latest
           name: dns-updater
-          ports:
-            - containerPort: 8080
           resources:
             limits:
               memory: "1Gi"
       restartPolicy: Always
       imagePullSecrets:
         - name: registry-secret
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: dns-updater
-  name: dns-updater
-  namespace: homelab
-spec:
-  ports:
-    - name: dns-updater
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
-  selector:
-    app: dns-updater
-  type: LoadBalancer
