@@ -11,24 +11,16 @@ Before running the application, make sure you have the following:
 - Cloudflare API key
 - Cloudflare account email
 
-Optional:
+Future features:
 
+- Webhook notifications when IP changes
 - Specific A records to update
+- Support for multiple domains
 
 ## Run containerized
 
-### Kubernetes with helm
-
-Helm overrides are located under `/k8s`.
-
-All magnuen2k charts can be found [here](https://gitlab.magnuen2k.com/homelab/charts)
 
 ### Docker
-
-- Login to registry with your account
-    ```shell
-    docker login registry.magnuen2k.com
-    ```
 
 - Run from command line or with `docker-compose.yml`
 
@@ -40,14 +32,14 @@ All magnuen2k charts can be found [here](https://gitlab.magnuen2k.com/homelab/ch
       -e "cloudflare.domain"="YOUR_CLOUDFLARE_DOMAIN" \
       -e "cloudflare.api.key"="YOUR_CLOUDFLARE_API_KEY" \
       -e "cloudflare.api.email"="YOUR_CLOUDFLARE_EMAIL" \
-      registry.magnuen2k.com/homelab/util/dns-updater:latest
+      magnuen2k/cloudflare-dns-updater:latest
     ```
 2. Docker compose
      ```yaml
     version: "2.2"
     services:
       dnsupdater:
-        image: registry.magnuen2k.com/homelab/util/dns-updater:latest
+        image: magnuen2k/cloudflare-dns-updater:latest
         container_name: my-dns-updater
         ports:
           - "8080:8080"
@@ -55,7 +47,6 @@ All magnuen2k charts can be found [here](https://gitlab.magnuen2k.com/homelab/ch
           - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
           - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
           - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
-          - cloudflare.records=some.record.com,another.one.com # THIS IS OPTIONAL
           - poll.cron=0 */1 * * * *
       ```
 
