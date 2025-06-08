@@ -2,7 +2,6 @@
 
 [![Build and Push Docker Image](https://github.com/magnuen2k/cloudflare-dns-updater/actions/workflows/build-push.yml/badge.svg)](https://github.com/magnuen2k/cloudflare-dns-updater/actions/workflows/build-push.yml)
 
-<br />
 This Spring Boot application is designed to run as a cron job and update DNS records on Cloudflare.
 The service uses [ipify](https://www.ipify.org/) to poll for its public ip.
 
