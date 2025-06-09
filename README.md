@@ -22,9 +22,7 @@ Future features:
 
 ## 🚀 Getting started
 
-### Docker
-
-- Run from command line or with `docker-compose.yml`
+Can be run from any container runtime.
 
 1. Command line
     ```shell
@@ -51,6 +49,8 @@ Future features:
           - cloudflare.domains.DOMAIN1.api-email=YOUR_CLOUDFLARE_EMAIL
           - poll.cron=0 */1 * * * *
       ```
+3. Kubernetes/Kustomize patch files can be found in the `k8s` directory of this repository. This is my config files for
+   running it in my OKD homelab cluster.
 
 ## 📖 Configuration Reference
 

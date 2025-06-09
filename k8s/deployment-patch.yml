@@ -11,11 +11,11 @@ spec:
           env:
             - name: "poll.cron"
               value: "0 */1 * * * *"
-            - name: "cloudflare.domain"
+            - name: "cloudflare.domains.magnuen2k.domain"
               value: "magnuen2k.com"
-            - name: "cloudflare.api.email"
+            - name: "cloudflare.domains.magnuen2k.api-email"
               value: "magnuen2k@gmail.com"
-            - name: "cloudflare.api.key"
+            - name: "cloudflare.domains.magnuen2k.api-key"
               valueFrom:
                 secretKeyRef:
                   name: cf-secret
