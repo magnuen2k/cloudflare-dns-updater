@@ -36,7 +36,7 @@ jobs:
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cloudflare-dns-updater:latest .
 
       - name: Build SHA Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cloudflare-dns-updater:${{ env.SHORT_SHA }}.
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cloudflare-dns-updater:${{ env.SHORT_SHA }} .
 
       - name: Push Latest Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudflare-dns-updater:latest
