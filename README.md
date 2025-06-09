@@ -65,13 +65,13 @@ The application can be configured using environment variables or through the `ap
 
 ### `DomainConfig` Fields (under `cloudflare.domains.*`)
 
-| Key         | Type           | Default       | Optional | Description                                                                             |
+| Key         | Type           | Default       | Required | Description                                                                             |
 |-------------|----------------|---------------|----------|-----------------------------------------------------------------------------------------|
-| `domain`    | `String`       | null          | false    | The actual domain name (e.g. `magnuen2k.com`).                                          |
-| `api-key`   | `String`       | null          | false    | API key used to authenticate with Cloudflare.                                           |
-| `api-email` | `String`       | null          | false    | Email associated with the API key.                                                      |
-| `zones`     | `List<String>` | `emptyList()` | true     | Specific zone IDs. Default is to lookup all zones in a domain if none is specified.     |
-| `records`   | `List<String>` | `emptyList()` | true     | Specific A-record. Default is to lookup all A-records in a domain if none is specified. |
+| `domain`    | `String`       | null          | true     | The actual domain name (e.g. `magnuen2k.com`).                                          |
+| `api-key`   | `String`       | null          | true     | API key used to authenticate with Cloudflare.                                           |
+| `api-email` | `String`       | null          | true     | Email associated with the API key.                                                      |
+| `zones`     | `List<String>` | `emptyList()` | false    | Specific zone IDs. Default is to lookup all zones in a domain if none is specified.     |
+| `records`   | `List<String>` | `emptyList()` | false    | Specific A-record. Default is to lookup all A-records in a domain if none is specified. |
 
 ---
 
