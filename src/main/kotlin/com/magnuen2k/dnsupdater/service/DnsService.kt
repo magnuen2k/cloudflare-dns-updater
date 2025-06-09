@@ -1,107 +1,97 @@
 package com.magnuen2k.dnsupdater.service
 
+import com.magnuen2k.dnsupdater.CloudflareConfig
+import com.magnuen2k.dnsupdater.DomainProperties
 import com.magnuen2k.dnsupdater.dto.RecordResponse
+import com.magnuen2k.dnsupdater.dto.RecordResult
 import com.magnuen2k.dnsupdater.dto.ZoneResponse
+import com.magnuen2k.dnsupdater.util.AuthConfig
 import com.magnuen2k.dnsupdater.util.measureTime
+import com.magnuen2k.dnsupdater.util.req
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.RequestEntity
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
-import java.net.URI
 
 @Service
 class DnsService(
-        @Value("\${cloudflare.domain}")
-        private val domain: String,
-        @Value("\${cloudflare.api.url}")
-        private val apiUrl: String,
-        @Value("\${cloudflare.api.key}")
-        private val apiKey: String,
-        @Value("\${cloudflare.api.email}")
-        private val email: String,
-        @Value("\${cloudflare.records}")
-        private val records: List<String>?,
-        @Value("\${poll.server}")
-        private val pollServer: String,
-        private val restTemplate: RestTemplate,
+    private val config: CloudflareConfig,
+    private val restTemplate: RestTemplate,
+    @Value("\${poll.server}")
+    private val pollServer: String,
 ) {
 
     val logger: Logger = LoggerFactory.getLogger(DnsService::class.java)
-    val cache = mutableListOf("")
+    val cache = mutableListOf<String>()
 
     @Scheduled(cron = "\${poll.cron}")
-    fun run() {
+    fun updateDnsRecords() {
         measureTime("Scheduled DNS update service") {
             try {
                 val ip = pollAddress().trim()
-                if (cache.isNotEmpty() && cache.contains(ip)) {
-                    logger.info("Ip has not changed. No updating required.")
+                if (cache.contains(ip)) {
+                    logger.info("IP has not changed. No updating required.")
                     return
                 }
-
                 if (cache.count() > 2) cache.clear()
-                cache.apply { add(ip) }
+                cache.add(ip)
 
-                updateDns(ip)
+                for ((_, domain) in config.domains) {
+                    logger.info("Updating DNS records for domain: ${domain.domain} with IP: $ip")
+                    doUpdate(ip, domain)
+                }
             } catch (e: Exception) {
                 logger.error("Update failed with error message: ${e.message}")
             }
         }
     }
 
-    fun updateDns(ip: String) {
-        logger.info("Updating all DNS records (A-Records)")
-        webRequest<ZoneResponse>("$apiUrl/zones?name=$domain", HttpMethod.GET)
-                ?.result
-                ?.forEach { zone ->
-                    webRequest<RecordResponse>(
-                            url = "$apiUrl/zones/${zone.id}/dns_records",
-                            method = HttpMethod.GET
-                    )
-                            ?.result
-                            ?.filter {
-                                if (records?.isNotEmpty() == true) {
-                                    records.contains(it.name) && it.type == "A"
-                                } else it.type == "A"
-                            }
-                            ?.forEach { record ->
-                                logger.info("Updating record: ${record.name} with ip: $ip")
-                                webRequest<Any>(
-                                        url = "$apiUrl/zones/${record.zone_id}/dns_records/${record.id}",
-                                        method = HttpMethod.PUT,
-                                        body = mapOf(
-                                                "content" to ip,
-                                                "type" to "A",
-                                                "name" to record.name,
-                                                "proxied" to record.proxied,
-                                        )
-                                )
-                            }
+    private fun doUpdate(ip: String, domain: DomainProperties) {
+        val auth = AuthConfig(
+            apiKey = domain.apiKey,
+            email = domain.apiEmail
+        )
+        val zones = domain.getZones(auth)
+        for (zone in zones) {
+            val records = domain.getRecords(zone, auth)
+            for (record in records) {
+                try {
+                    val url = "${config.apiUrl}/zones/${zone}/dns_records/${record.id}"
+                    val body = mapOf("type" to "A", "name" to record.name, "content" to ip, "proxied" to record.proxied)
+                    restTemplate.req<Any>(auth, url, HttpMethod.PUT, body)
+                    logger.info("Updated DNS record $record in zone $zone to IP $ip")
+                } catch (e: Exception) {
+                    logger.error("Failed to update record $record in zone $zone: ${e.message}")
                 }
+            }
+        }
     }
 
-    private inline fun <reified T> webRequest(url: String, method: HttpMethod, body: Map<String, Any>? = null): T? {
-        val headers = HttpHeaders().apply {
-            set("X-Auth-Email", email)
-            set("Authorization", "Bearer $apiKey")
-            accept = listOf(MediaType.APPLICATION_JSON)
-        }
-
-        val requestEntity = when (body) {
-            null -> RequestEntity<Any>(headers, method, URI(url))
-            else -> RequestEntity(body, headers, method, URI(url))
-        }
-
-        val responseEntity = restTemplate.exchange(requestEntity, T::class.java)
-        return responseEntity.body
+    private fun DomainProperties.getRecords(zoneId: String, auth: AuthConfig): List<RecordResult> {
+        return restTemplate.req<RecordResponse>(
+            auth,
+            "${config.apiUrl}/zones/$zoneId/dns_records?type=A",
+        )
+            .result
+            .filter {
+                if (records.isNotEmpty()) {
+                    records.contains(it.name) && it.type == "A"
+                } else it.type == "A"
+            }
     }
 
-    fun pollAddress(): String =
-            restTemplate.getForObject(pollServer, String::class.java) ?: ""
+    private fun DomainProperties.getZones(auth: AuthConfig): List<String> {
+        return zones.ifEmpty {
+            restTemplate.req<ZoneResponse>(
+                auth,
+                "${config.apiUrl}/zones?name=${this.domain}",
+            ).result.map { it.id }
+        }
+    }
+
+    private fun pollAddress(): String =
+        restTemplate.getForObject(pollServer, String::class.java) ?: ""
 }

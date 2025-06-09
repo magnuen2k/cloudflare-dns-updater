@@ -6,8 +6,6 @@ data class RecordResponse (
 
 data class RecordResult (
     val id: String,
-    val zone_id: String,
-    val zone_name: String,
     val name: String,
     val type: String,
     val proxied: Boolean,

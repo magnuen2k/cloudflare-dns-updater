@@ -4,13 +4,18 @@ poll:
   cron: "0 */1 * * * *"
 
 cloudflare:
-  domain: YOUR_DOMAIN
-  api:
-    url: https://api.cloudflare.com/client/v4
-    key: YOUR_CF_API_KEY
-    email: YOUR_CF_EMAIL
-  records: >
-  #  some.record.com
+  api-url: https://api.cloudflare.com/client/v4
+  domains:
+    ANY_WEBSITE_NAME:
+      domain: yourpage.com
+      api-email: YOUR_CF_EMAIL
+      api-key: YOUR_CF_API_KEY
+      zones:
+        - ANY_ZONE_ID
+        - ANY_ZONE_ID
+      records:
+        - ANY_RECORD_ID
+        - ANY_RECORD_ID
 
 management:
   endpoints:

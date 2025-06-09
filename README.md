@@ -1,9 +1,10 @@
-# Cloudflare DNS Updater
+# 🌍 Cloudflare DNS Updater
 
 [![Build and Push Docker Image](https://github.com/magnuen2k/cloudflare-dns-updater/actions/workflows/build-push.yml/badge.svg)](https://github.com/magnuen2k/cloudflare-dns-updater/actions/workflows/build-push.yml)
 
 This Spring Boot application is designed to run as a cron job and update DNS records on Cloudflare.
-The service uses [ipify](https://www.ipify.org/) to poll for its public ip.
+The service uses [ipify](https://www.ipify.org/) to poll for its public ip. You can configure the app to run for
+multiple domains and zones, updating either all or specific records.
 
 The container exposes port 8080 for optional health checks, but it is not used for any other purpose.
 
@@ -18,10 +19,8 @@ Before running the application, make sure you have the following:
 Future features:
 
 - Webhook notifications when IP changes
-- Specific A records to update
-- Support for multiple domains
 
-## Run containerized
+## 🚀 Getting started
 
 ### Docker
 
@@ -32,9 +31,9 @@ Future features:
     docker run \
       --name my-dns-updater \
       -e "poll.cron"="0 */1 * * * *" \
-      -e "cloudflare.domain"="YOUR_CLOUDFLARE_DOMAIN" \
-      -e "cloudflare.api.key"="YOUR_CLOUDFLARE_API_KEY" \
-      -e "cloudflare.api.email"="YOUR_CLOUDFLARE_EMAIL" \
+      -e "cloudflare.domains.DOMAIN1.domain"="YOUR_CLOUDFLARE_DOMAIN" \
+      -e "cloudflare.domains.DOMAIN1.api-key"="YOUR_CLOUDFLARE_API_KEY" \
+      -e "cloudflare.domains.DOMAIN1.api-email"="YOUR_CLOUDFLARE_EMAIL" \
       magnuen2k/cloudflare-dns-updater:latest
     ```
 2. Docker compose
@@ -47,27 +46,63 @@ Future features:
         ports:
           - "8080:8080"
         environment:
-          - cloudflare.domain=YOUR_CLOUDFLARE_DOMAIN
-          - cloudflare.api.key=YOUR_CLOUDFLARE_API_KEY
-          - cloudflare.api.email=YOUR_CLOUDFLARE_EMAIL
+          - cloudflare.domains.DOMAIN1.domain=YOUR_CLOUDFLARE_DOMAIN
+          - cloudflare.domains.DOMAIN1.api-key=YOUR_CLOUDFLARE_API_KEY
+          - cloudflare.domains.DOMAIN1.api-email=YOUR_CLOUDFLARE_EMAIL
           - poll.cron=0 */1 * * * *
       ```
 
-## Run locally
+## 📖 Configuration Reference
 
-Adjust the application configuration in the `application.yml` file:
+The application can be configured using environment variables or through the `application.yml` file.
+
+### Root Properties
+
+| Key                  | Type                       | Default                                | Description                                                                                                                                                                       |
+|----------------------|----------------------------|----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `cloudflare.api`     | `String`                   | `https://api.cloudflare.com/client/v4` | Base URL for the Cloudflare API or integration endpoint.                                                                                                                          |
+| `cloudflare.domains` | `Map<String, DomainConfig` | `emptyMap()`                           | A named map of domain configurations. Each key is a page ID (e.g. `some-page`). This is done to make it easier to inject configuration from docker-compose and not rely on lists. |
+
+### `DomainConfig` Fields (under `cloudflare.domains.*`)
+
+| Key         | Type           | Default       | Optional | Description                                                                             |
+|-------------|----------------|---------------|----------|-----------------------------------------------------------------------------------------|
+| `domain`    | `String`       | null          | false    | The actual domain name (e.g. `magnuen2k.com`).                                          |
+| `api-key`   | `String`       | null          | false    | API key used to authenticate with Cloudflare.                                           |
+| `api-email` | `String`       | null          | false    | Email associated with the API key.                                                      |
+| `zones`     | `List<String>` | `emptyList()` | true     | Specific zone IDs. Default is to lookup all zones in a domain if none is specified.     |
+| `records`   | `List<String>` | `emptyList()` | true     | Specific A-record. Default is to lookup all A-records in a domain if none is specified. |
+
+---
+
+### 🧪 Example Configuration (`application.yaml` or external config file)
 
 ```yaml
 cloudflare:
-  domain: YOUR_CLOUDFLARE_DOMAIN
-  api:
-    url: https://api.cloudflare.com/client/v4
-    key: YOUR_CLOUDFLARE_API_KEY
-    email: YOUR_CLOUDFLARE_EMAIL
+  api-url: https://api.cloudflare.com/client/v4
+  domains:
+    WEBSITE-1:
+      domain: YOUR_CLOUDFLARE_DOMAIN
+      api-email: YOUR_CF_EMAIL
+      api-key: YOUR_CF_API_KEY
+    WEBSITE-2:
+      domain: YOUR_CLOUDFLARE_DOMAIN
+      api-email: YOUR_CF_EMAIL
+      api-key: YOUR_CF_API_KEY
+
+      # Optional: Specify zones and records to update
+      zones:
+        - ANY_ZONE_ID
+        - ANY_ZONE_ID
+      records:
+        - ANY_RECORD_ID
+        - ANY_RECORD_ID
 ```
 
 Replace `YOUR_CLOUDFLARE_DOMAIN`, `YOUR_CLOUDFLARE_API_KEY` and `YOUR_CLOUDFLARE_EMAIL` with your actual Cloudflare API
 credentials.
+
+## Run locally
 
 #### Cron Expression
 
