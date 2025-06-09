@@ -5,17 +5,6 @@ poll:
 
 cloudflare:
   api-url: https://api.cloudflare.com/client/v4
-  domains:
-    ANY_WEBSITE_NAME:
-      domain: yourpage.com
-      api-email: YOUR_CF_EMAIL
-      api-key: YOUR_CF_API_KEY
-      zones:
-        - ANY_ZONE_ID
-        - ANY_ZONE_ID
-      records:
-        - ANY_RECORD_ID
-        - ANY_RECORD_ID
 
 management:
   endpoints:
